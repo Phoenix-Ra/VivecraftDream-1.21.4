@@ -35,19 +35,55 @@ public class NullVRStereoRenderer extends VRRenderer {
     }
 
     @Override
-    public void createRenderTexture(int lwidth, int lheight) {
-        this.LeftEyeTextureId = GlStateManager._genTexture();
+    public void createRenderTexture(int lwidth, int lheight, int arWidth, int arHeight) {
+        this.LeftEyeARTextureId = GlStateManager._genTexture();
         int i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
-        RenderSystem.bindTexture(this.LeftEyeTextureId);
+        RenderSystem.bindTexture(this.LeftEyeARTextureId);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, arWidth, arHeight, 0, GL11.GL_RGBA, GL11.GL_INT,
+            null);
+
+        RenderSystem.bindTexture(i);
+        this.RightEyeARTextureId = GlStateManager._genTexture();
+        i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
+        RenderSystem.bindTexture(this.RightEyeARTextureId);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, arWidth, arHeight, 0, GL11.GL_RGBA, GL11.GL_INT,
+            null);
+        RenderSystem.bindTexture(i);
+
+        this.LeftEyeFinalTextureId = GlStateManager._genTexture();
+        i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
+        RenderSystem.bindTexture(this.LeftEyeFinalTextureId);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT,
             null);
 
         RenderSystem.bindTexture(i);
-        this.RightEyeTextureId = GlStateManager._genTexture();
+        this.RightEyeFinalTextureId = GlStateManager._genTexture();
         i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
-        RenderSystem.bindTexture(this.RightEyeTextureId);
+        RenderSystem.bindTexture(this.RightEyeFinalTextureId);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT,
+            null);
+        RenderSystem.bindTexture(i);
+
+        this.LeftEyePreTextureId = GlStateManager._genTexture();
+        i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
+        RenderSystem.bindTexture(this.LeftEyePreTextureId);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+        RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
+        GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT,
+            null);
+
+        RenderSystem.bindTexture(i);
+        this.RightEyePreTextureId = GlStateManager._genTexture();
+        i = GlStateManager._getInteger(GL11.GL_TEXTURE_BINDING_2D);
+        RenderSystem.bindTexture(this.RightEyePreTextureId);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
         RenderSystem.texParameter(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
         GlStateManager._texImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGBA8, lwidth, lheight, 0, GL11.GL_RGBA, GL11.GL_INT,
@@ -72,14 +108,14 @@ public class NullVRStereoRenderer extends VRRenderer {
     @Override
     protected void destroyBuffers() {
         super.destroyBuffers();
-        if (this.LeftEyeTextureId > -1) {
-            TextureUtil.releaseTextureId(this.LeftEyeTextureId);
-            this.LeftEyeTextureId = -1;
+        if (this.LeftEyePreTextureId > -1) {
+            TextureUtil.releaseTextureId(this.LeftEyePreTextureId);
+            this.LeftEyePreTextureId = -1;
         }
 
-        if (this.RightEyeTextureId > -1) {
-            TextureUtil.releaseTextureId(this.RightEyeTextureId);
-            this.RightEyeTextureId = -1;
+        if (this.RightEyePreTextureId > -1) {
+            TextureUtil.releaseTextureId(this.RightEyePreTextureId);
+            this.RightEyePreTextureId = -1;
         }
     }
 }

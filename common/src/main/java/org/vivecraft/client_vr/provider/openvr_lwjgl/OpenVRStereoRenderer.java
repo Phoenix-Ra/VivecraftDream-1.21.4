@@ -12,15 +12,19 @@ import org.lwjgl.openvr.HmdMatrix44;
 import org.lwjgl.openvr.VR;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
+import org.vivecraft.client_vr.ClientDataHolderVR;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.provider.VRRenderer;
 import org.vivecraft.client_vr.render.RenderConfigException;
 import org.vivecraft.client_vr.render.helpers.RenderHelper;
 import org.vivecraft.client_vr.settings.VRSettings;
 
+import java.nio.FloatBuffer;
+
 import static org.lwjgl.openvr.VRCompositor.VRCompositor_PostPresentHandoff;
 import static org.lwjgl.openvr.VRCompositor.VRCompositor_Submit;
 import static org.lwjgl.openvr.VRSystem.*;
+import static org.lwjgl.openvr.VRSystem.VRSystem_GetProjectionMatrix;
 
 public class OpenVRStereoRenderer extends VRRenderer {
     private final HiddenAreaMesh[] hiddenMeshes = new HiddenAreaMesh[2];
@@ -80,40 +84,130 @@ public class OpenVRStereoRenderer extends VRRenderer {
     @Override
     protected Matrix4f getProjectionMatrix(int eyeType, float nearClip, float farClip) {
         try (MemoryStack stack = MemoryStack.stackPush()) {
-            if (eyeType == VR.EVREye_Eye_Left) {
-                return OpenVRUtil.Matrix4fFromOpenVR(
-                    VRSystem_GetProjectionMatrix(VR.EVREye_Eye_Left, nearClip, farClip, HmdMatrix44.calloc(stack)));
-            } else {
-                return OpenVRUtil.Matrix4fFromOpenVR(
-                    VRSystem_GetProjectionMatrix(VR.EVREye_Eye_Right, nearClip, farClip, HmdMatrix44.calloc(stack)));
-            }
+            FloatBuffer pfLeft = stack.callocFloat(1);
+            FloatBuffer pfRight = stack.callocFloat(1);
+            FloatBuffer pfTop = stack.callocFloat(1);
+            FloatBuffer pfBottom = stack.callocFloat(1);
+            VRSystem_GetProjectionRaw(eyeType, pfLeft, pfRight, pfTop, pfBottom);
+            return composeProjectionWithScale(
+                pfLeft.get(0), pfRight.get(0),
+                pfTop.get(0), pfBottom.get(0),
+                nearClip, farClip,
+                ClientDataHolderVR.getInstance().vrSettings.fovScaleFactor
+            );
+        }
+    }
+    private Matrix4f composeProjectionWithScale(
+        float fLeft, float fRight,
+        float fTop, float fBottom,
+        float zNear, float zFar,
+        float scale
+    ) {
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            HmdMatrix44 hmdMatrix44 = HmdMatrix44.calloc(stack);
+            // Apply scaling to the tangents of the clipping planes
+            // Apply scaling to the tangents of the clipping planes
+            fLeft *= scale;
+            fRight *= scale;
+            fTop *= scale;
+            fBottom *= scale;
+
+            // Calculate inverse distances for the projection matrix
+            float idx = 1.0f / (fRight - fLeft);
+            float idy = 1.0f / (fBottom - fTop);
+            float idz = 1.0f / (zFar - zNear);
+            float sx = fRight + fLeft;
+            float sy = fBottom + fTop;
+
+            // Fill the projection matrix
+            // Create the projection matrix as a FloatBuffer
+            FloatBuffer matrixBuffer = stack.callocFloat(16);
+
+            matrixBuffer.put(0, 2 * idx); // m[0][0]
+            matrixBuffer.put(1, 0);       // m[0][1]
+            matrixBuffer.put(2, sx * idx); // m[0][2]
+            matrixBuffer.put(3, 0);       // m[0][3]
+
+            matrixBuffer.put(4, 0);       // m[1][0]
+            matrixBuffer.put(5, 2 * idy); // m[1][1]
+            matrixBuffer.put(6, sy * idy); // m[1][2]
+            matrixBuffer.put(7, 0);       // m[1][3]
+
+            matrixBuffer.put(8, 0);       // m[2][0]
+            matrixBuffer.put(9, 0);       // m[2][1]
+            matrixBuffer.put(10, -zFar * idz); // m[2][2]
+            matrixBuffer.put(11, -zFar * zNear * idz); // m[2][3]
+
+            matrixBuffer.put(12, 0);       // m[3][0]
+            matrixBuffer.put(13, 0);       // m[3][1]
+            matrixBuffer.put(14, -1.0f);   // m[3][2]
+            matrixBuffer.put(15, 0);       // m[3][3]
+
+            // Set the matrix in the HmdMatrix44 object
+            hmdMatrix44.m(matrixBuffer);
+            return OpenVRUtil.Matrix4fFromOpenVR(hmdMatrix44);
         }
     }
 
     @Override
-    public void createRenderTexture(int width, int height) {
+    public void createRenderTexture(int width, int height, int arWidth, int arHeight) {
         int boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
         // generate left eye texture
-        this.LeftEyeTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.LeftEyeTextureId);
+        this.LeftEyeARTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.LeftEyeARTextureId);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
+        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, arWidth, arHeight, 0, GL11C.GL_RGBA,
+            GL11C.GL_INT, null);
+
+        // generate right eye texture
+        this.RightEyeARTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.RightEyeARTextureId);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
+        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, arWidth, arHeight, 0, GL11C.GL_RGBA,
+            GL11C.GL_INT, null);
+
+
+        boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
+        // generate left eye texture
+        this.LeftEyeFinalTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.LeftEyeFinalTextureId);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
         GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
             GL11C.GL_INT, null);
-        this.openvr.texType0.handle(this.LeftEyeTextureId);
+        this.openvr.texType0.handle(this.LeftEyeFinalTextureId);
         this.openvr.texType0.eColorSpace(VR.EColorSpace_ColorSpace_Gamma);
         this.openvr.texType0.eType(VR.ETextureType_TextureType_OpenGL);
 
         // generate right eye texture
-        this.RightEyeTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.RightEyeTextureId);
+        this.RightEyeFinalTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.RightEyeFinalTextureId);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
         GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
             GL11C.GL_INT, null);
-        this.openvr.texType1.handle(this.RightEyeTextureId);
+        this.openvr.texType1.handle(this.RightEyeFinalTextureId);
         this.openvr.texType1.eColorSpace(VR.EColorSpace_ColorSpace_Gamma);
         this.openvr.texType1.eType(VR.ETextureType_TextureType_OpenGL);
+
+        boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
+        // generate left eye texture
+        this.LeftEyePreTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.LeftEyePreTextureId);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
+        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
+            GL11C.GL_INT, null);
+
+        // generate right eye texture
+        this.RightEyePreTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.RightEyePreTextureId);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
+        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
+        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
+            GL11C.GL_INT, null);
 
         RenderSystem.bindTexture(boundTextureId);
         this.lastError = RenderHelper.checkGLError("create VR textures");
@@ -170,14 +264,23 @@ public class OpenVRStereoRenderer extends VRRenderer {
     @Override
     protected void destroyBuffers() {
         super.destroyBuffers();
-        if (this.LeftEyeTextureId > -1) {
-            TextureUtil.releaseTextureId(this.LeftEyeTextureId);
-            this.LeftEyeTextureId = -1;
+        if (this.LeftEyePreTextureId > -1) {
+            TextureUtil.releaseTextureId(this.LeftEyePreTextureId);
+            this.LeftEyePreTextureId = -1;
         }
 
-        if (this.RightEyeTextureId > -1) {
-            TextureUtil.releaseTextureId(this.RightEyeTextureId);
-            this.RightEyeTextureId = -1;
+        if (this.RightEyePreTextureId > -1) {
+            TextureUtil.releaseTextureId(this.RightEyePreTextureId);
+            this.RightEyePreTextureId = -1;
+        }
+        if (this.LeftEyeARTextureId > -1) {
+            TextureUtil.releaseTextureId(this.LeftEyeARTextureId);
+            this.LeftEyeARTextureId = -1;
+        }
+
+        if (this.RightEyeARTextureId > -1) {
+            TextureUtil.releaseTextureId(this.RightEyeARTextureId);
+            this.RightEyeARTextureId = -1;
         }
     }
 

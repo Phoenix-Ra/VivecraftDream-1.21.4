@@ -62,14 +62,53 @@ public class VRPassHelper {
                 Profiler.get().pop();
             }
 
-            if (eye == RenderPass.LEFT) {
-                DATA_HOLDER.vrRenderer.framebufferEye0.bindWrite(true);
-            } else {
-                DATA_HOLDER.vrRenderer.framebufferEye1.bindWrite(true);
-            }
 
+            RenderTarget eyeTarget;
+            if (eye == RenderPass.LEFT) {
+                eyeTarget = DATA_HOLDER.vrRenderer.framebufferEyePre0;
+            } else {
+                eyeTarget = DATA_HOLDER.vrRenderer.framebufferEyePre1;
+            }
+            eyeTarget.bindWrite(true);
             // do post-processing
             ShaderHelper.doVrPostProcess(eye, rendertarget, deltaTracker.getGameTimeDeltaPartialTick(false));
+
+            //AR Glasses
+            RenderTarget eyeARTarget;
+            if (eye == RenderPass.LEFT) {
+                eyeARTarget = DATA_HOLDER.vrRenderer.framebufferEyeAR0;
+            } else {
+                eyeARTarget = DATA_HOLDER.vrRenderer.framebufferEyeAR1;
+            }
+            eyeARTarget.bindWrite(true);
+            // Center the smaller viewport
+            int xOffset = (eyeTarget.width - eyeARTarget.width) / 2;
+            int yOffset = (eyeTarget.height - eyeARTarget.height) / 2;
+
+            ShaderHelper.blitToScreen(
+                eyeTarget,
+                0,
+                eyeARTarget.width, eyeARTarget.height,
+                0,
+                0f, 0f,
+                true
+            );
+
+            RenderTarget eyeFinalTarget;
+            if (eye == RenderPass.LEFT) {
+                eyeFinalTarget = DATA_HOLDER.vrRenderer.framebufferEyeFinal0;
+            } else {
+                eyeFinalTarget = DATA_HOLDER.vrRenderer.framebufferEyeFinal1;
+            }
+            eyeFinalTarget.bindWrite(true);
+            ShaderHelper.blitToScreen(
+                eyeARTarget,
+                xOffset,
+                eyeARTarget.width, eyeARTarget.height,
+                yOffset,
+                0f, 0f,
+                true
+            );
 
             RenderHelper.checkGLError("post overlay" + eye);
             Profiler.get().pop();
@@ -102,6 +141,19 @@ public class VRPassHelper {
             // rebind the original buffer
             DATA_HOLDER.vrRenderer.framebufferMR.bindWrite(false);
         }
+    }
+
+    public static void setupViewportForEye(float eyeScreenScale, int framebufferWidth, int framebufferHeight) {
+        // Calculate the size of the smaller viewport
+        int scaledWidth = (int) (framebufferWidth * eyeScreenScale);
+        int scaledHeight = (int) (framebufferHeight * eyeScreenScale);
+
+        // Center the smaller viewport
+        int xOffset = (framebufferWidth - scaledWidth) / 2;
+        int yOffset = (framebufferHeight - scaledHeight) / 2;
+
+        // Set the viewport
+        RenderSystem.viewport(xOffset, yOffset, scaledWidth, scaledHeight);
     }
 
     /**
