@@ -51,19 +51,11 @@ public abstract class VRRenderer {
     public Matrix4f[] eyeProj = new Matrix4f[2];
     private float lastFarClip = 0F;
 
-    // render buffers
-    public RenderTarget framebufferEyeAR0;
-    public RenderTarget framebufferEyeAR1;
-    public RenderTarget framebufferEyePre0;
-    public RenderTarget framebufferEyePre1;
-    public RenderTarget framebufferEyeFinal0;
-    public RenderTarget framebufferEyeFinal1;
-    protected int LeftEyeARTextureId = -1;
-    protected int RightEyeARTextureId = -1;
-    protected int LeftEyePreTextureId = -1;
-    protected int RightEyePreTextureId = -1;
-    protected int LeftEyeFinalTextureId = -1;
-    protected int RightEyeFinalTextureId = -1;
+    // render buffers=
+    public RenderTarget framebufferEye0;
+    public RenderTarget framebufferEye1;
+    protected int LeftEyeTextureId = -1;
+    protected int RightEyeTextureId = -1;
     public RenderTarget framebufferMR;
     public RenderTarget framebufferUndistorted;
     public RenderTarget framebufferVrRender;
@@ -665,41 +657,33 @@ public abstract class VRRenderer {
 
             destroyBuffers();
 
-            if (this.LeftEyePreTextureId == -1) {
+            if (this.LeftEyeTextureId == -1) {
                 this.createRenderTexture(eyew, eyeh,eyeWidthAR,eyeHeightAR);
 
-                if (this.LeftEyePreTextureId == -1) {
+                if (this.LeftEyeTextureId == -1) {
                     throw new RenderConfigException(
                         Component.translatable("vivecraft.messages.renderiniterror", this.getName()),
                         Component.literal(this.getLastError()));
                 }
 
                 VRSettings.LOGGER.info("Vivecraft: VR Provider supplied render texture IDs: {}, {}",
-                    this.LeftEyePreTextureId, this.RightEyePreTextureId);
+                    this.LeftEyeTextureId, this.RightEyeTextureId);
                 VRSettings.LOGGER.info("Vivecraft: VR Provider supplied texture resolution: {} x {}", eyew, eyeh);
             }
 
             RenderHelper.checkGLError("Render Texture setup");
 
-            if (this.framebufferEyePre0 == null) {
-                this.framebufferEyePre0 = new VRTextureTarget("L Eye", eyew, eyeh, false, this.LeftEyePreTextureId, true,
+            if (this.framebufferEye0 == null) {
+                this.framebufferEye0 = new VRTextureTarget("L Eye", eyew, eyeh, false, this.LeftEyeTextureId, true,
                     false, false);
-                this.framebufferEyeAR0 = new VRTextureTarget("L AR Eye", eyeWidthAR, eyeHeightAR, false, this.LeftEyeARTextureId, true,
-                    false, false);
-                this.framebufferEyeFinal0 = new VRTextureTarget("L Final AR Eye", eyew, eyeh, false, this.LeftEyeFinalTextureId, true,
-                    false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEyePre0);
+                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye0);
                 RenderHelper.checkGLError("Left Eye framebuffer setup");
             }
 
-            if (this.framebufferEyePre1 == null) {
-                this.framebufferEyePre1 = new VRTextureTarget("R Eye", eyew, eyeh, false, this.RightEyePreTextureId, true,
+            if (this.framebufferEye1 == null) {
+                this.framebufferEye1 = new VRTextureTarget("R Eye", eyew, eyeh, false, this.RightEyeTextureId, true,
                     false, false);
-                this.framebufferEyeAR1 = new VRTextureTarget("L AR Eye", eyeWidthAR, eyeHeightAR, false, this.RightEyeARTextureId, true,
-                    false, false);
-                this.framebufferEyeFinal1 = new VRTextureTarget("R Final Eye", eyew, eyeh, false, this.RightEyeFinalTextureId, true,
-                    false, false);
-                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEyePre1);
+                VRSettings.LOGGER.info("Vivecraft: {}", this.framebufferEye1);
                 RenderHelper.checkGLError("Right Eye framebuffer setup");
             }
 
@@ -964,36 +948,17 @@ public abstract class VRRenderer {
             this.fsaaLastPassResultFBO = null;
         }
 
-        if (this.framebufferEyePre0 != null) {
-            this.framebufferEyePre0.destroyBuffers();
-            this.framebufferEyePre0 = null;
-            this.LeftEyePreTextureId = -1;
-        }
-        if (this.framebufferEyeAR0 != null) {
-            this.framebufferEyeAR0.destroyBuffers();
-            this.framebufferEyeAR0 = null;
-            this.LeftEyeARTextureId = -1;
-        }
-        if (this.framebufferEyeFinal0 != null) {
-            this.framebufferEyeFinal0.destroyBuffers();
-            this.framebufferEyeFinal0 = null;
-            this.LeftEyeFinalTextureId = -1;
+        if (this.framebufferEye0 != null) {
+            this.framebufferEye0.destroyBuffers();
+            this.framebufferEye0 = null;
+            this.LeftEyeTextureId = -1;
         }
 
-        if (this.framebufferEyePre1 != null) {
-            this.framebufferEyePre1.destroyBuffers();
-            this.framebufferEyePre1 = null;
-            this.RightEyePreTextureId = -1;
-        }
-        if (this.framebufferEyeAR1 != null) {
-            this.framebufferEyeAR1.destroyBuffers();
-            this.framebufferEyeAR1 = null;
-            this.RightEyeARTextureId = -1;
-        }
-        if (this.framebufferEyeFinal1 != null) {
-            this.framebufferEyeFinal1.destroyBuffers();
-            this.framebufferEyeFinal1 = null;
-            this.RightEyeFinalTextureId = -1;
+
+        if (this.framebufferEye1 != null) {
+            this.framebufferEye1.destroyBuffers();
+            this.framebufferEye1 = null;
+            this.RightEyeTextureId = -1;
         }
 
         if (this.mirrorFramebuffer != null) {

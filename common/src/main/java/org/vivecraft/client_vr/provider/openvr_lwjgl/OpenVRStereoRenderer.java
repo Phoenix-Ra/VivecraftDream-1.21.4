@@ -24,7 +24,6 @@ import java.nio.FloatBuffer;
 import static org.lwjgl.openvr.VRCompositor.VRCompositor_PostPresentHandoff;
 import static org.lwjgl.openvr.VRCompositor.VRCompositor_Submit;
 import static org.lwjgl.openvr.VRSystem.*;
-import static org.lwjgl.openvr.VRSystem.VRSystem_GetProjectionMatrix;
 
 public class OpenVRStereoRenderer extends VRRenderer {
     private final HiddenAreaMesh[] hiddenMeshes = new HiddenAreaMesh[2];
@@ -153,61 +152,26 @@ public class OpenVRStereoRenderer extends VRRenderer {
     public void createRenderTexture(int width, int height, int arWidth, int arHeight) {
         int boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
         // generate left eye texture
-        this.LeftEyeARTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.LeftEyeARTextureId);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
-        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, arWidth, arHeight, 0, GL11C.GL_RGBA,
-            GL11C.GL_INT, null);
-
-        // generate right eye texture
-        this.RightEyeARTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.RightEyeARTextureId);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
-        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, arWidth, arHeight, 0, GL11C.GL_RGBA,
-            GL11C.GL_INT, null);
-
-
-        boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
-        // generate left eye texture
-        this.LeftEyeFinalTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.LeftEyeFinalTextureId);
+        this.LeftEyeTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.LeftEyeTextureId);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
         GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
             GL11C.GL_INT, null);
-        this.openvr.texType0.handle(this.LeftEyeFinalTextureId);
+        this.openvr.texType0.handle(this.LeftEyeTextureId);
         this.openvr.texType0.eColorSpace(VR.EColorSpace_ColorSpace_Gamma);
         this.openvr.texType0.eType(VR.ETextureType_TextureType_OpenGL);
 
         // generate right eye texture
-        this.RightEyeFinalTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.RightEyeFinalTextureId);
+        this.RightEyeTextureId = GlStateManager._genTexture();
+        RenderSystem.bindTexture(this.RightEyeTextureId);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
         RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
         GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
             GL11C.GL_INT, null);
-        this.openvr.texType1.handle(this.RightEyeFinalTextureId);
+        this.openvr.texType1.handle(this.RightEyeTextureId);
         this.openvr.texType1.eColorSpace(VR.EColorSpace_ColorSpace_Gamma);
         this.openvr.texType1.eType(VR.ETextureType_TextureType_OpenGL);
-
-        boundTextureId = GlStateManager._getInteger(GL11C.GL_TEXTURE_BINDING_2D);
-        // generate left eye texture
-        this.LeftEyePreTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.LeftEyePreTextureId);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
-        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
-            GL11C.GL_INT, null);
-
-        // generate right eye texture
-        this.RightEyePreTextureId = GlStateManager._genTexture();
-        RenderSystem.bindTexture(this.RightEyePreTextureId);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MIN_FILTER, GL11C.GL_LINEAR);
-        RenderSystem.texParameter(GL11C.GL_TEXTURE_2D, GL11C.GL_TEXTURE_MAG_FILTER, GL11C.GL_LINEAR);
-        GlStateManager._texImage2D(GL11C.GL_TEXTURE_2D, 0, GL11C.GL_RGBA8, width, height, 0, GL11C.GL_RGBA,
-            GL11C.GL_INT, null);
 
         RenderSystem.bindTexture(boundTextureId);
         this.lastError = RenderHelper.checkGLError("create VR textures");
@@ -264,23 +228,14 @@ public class OpenVRStereoRenderer extends VRRenderer {
     @Override
     protected void destroyBuffers() {
         super.destroyBuffers();
-        if (this.LeftEyePreTextureId > -1) {
-            TextureUtil.releaseTextureId(this.LeftEyePreTextureId);
-            this.LeftEyePreTextureId = -1;
+        if (this.LeftEyeTextureId > -1) {
+            TextureUtil.releaseTextureId(this.LeftEyeTextureId);
+            this.LeftEyeTextureId = -1;
         }
 
-        if (this.RightEyePreTextureId > -1) {
-            TextureUtil.releaseTextureId(this.RightEyePreTextureId);
-            this.RightEyePreTextureId = -1;
-        }
-        if (this.LeftEyeARTextureId > -1) {
-            TextureUtil.releaseTextureId(this.LeftEyeARTextureId);
-            this.LeftEyeARTextureId = -1;
-        }
-
-        if (this.RightEyeARTextureId > -1) {
-            TextureUtil.releaseTextureId(this.RightEyeARTextureId);
-            this.RightEyeARTextureId = -1;
+        if (this.RightEyeTextureId > -1) {
+            TextureUtil.releaseTextureId(this.RightEyeTextureId);
+            this.RightEyeTextureId = -1;
         }
     }
 

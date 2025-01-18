@@ -1835,7 +1835,7 @@ public class VRSettings {
             @Override
             String getDisplayString(String prefix, Object value) {
                 if (VRState.VR_ENABLED) {
-                    RenderTarget eye0 = ClientDataHolderVR.getInstance().vrRenderer.framebufferEyePre0;
+                    RenderTarget eye0 = ClientDataHolderVR.getInstance().vrRenderer.framebufferEye0;
                     return prefix + Math.round((float) value * 100) + "% (" +
                         (int) Math.ceil(eye0.viewWidth * Math.sqrt((float) value)) + "x" +
                         (int) Math.ceil(eye0.viewHeight * Math.sqrt((float) value)) + ")";

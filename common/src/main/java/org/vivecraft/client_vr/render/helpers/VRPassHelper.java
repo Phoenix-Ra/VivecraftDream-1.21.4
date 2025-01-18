@@ -65,50 +65,19 @@ public class VRPassHelper {
 
             RenderTarget eyeTarget;
             if (eye == RenderPass.LEFT) {
-                eyeTarget = DATA_HOLDER.vrRenderer.framebufferEyePre0;
+                eyeTarget = DATA_HOLDER.vrRenderer.framebufferEye0;
             } else {
-                eyeTarget = DATA_HOLDER.vrRenderer.framebufferEyePre1;
+                eyeTarget = DATA_HOLDER.vrRenderer.framebufferEye1;
             }
             eyeTarget.bindWrite(true);
+
+            //PhoenixRa: AR GLASSES FIX
+            setupViewportForEye(
+                DATA_HOLDER.vrSettings.eyeScreenSize,
+                eyeTarget.width,eyeTarget.height
+            );
             // do post-processing
             ShaderHelper.doVrPostProcess(eye, rendertarget, deltaTracker.getGameTimeDeltaPartialTick(false));
-
-            //AR Glasses
-            RenderTarget eyeARTarget;
-            if (eye == RenderPass.LEFT) {
-                eyeARTarget = DATA_HOLDER.vrRenderer.framebufferEyeAR0;
-            } else {
-                eyeARTarget = DATA_HOLDER.vrRenderer.framebufferEyeAR1;
-            }
-            eyeARTarget.bindWrite(true);
-            // Center the smaller viewport
-            int xOffset = (eyeTarget.width - eyeARTarget.width) / 2;
-            int yOffset = (eyeTarget.height - eyeARTarget.height) / 2;
-
-            ShaderHelper.blitToScreen(
-                eyeTarget,
-                0,
-                eyeARTarget.width, eyeARTarget.height,
-                0,
-                0f, 0f,
-                true
-            );
-
-            RenderTarget eyeFinalTarget;
-            if (eye == RenderPass.LEFT) {
-                eyeFinalTarget = DATA_HOLDER.vrRenderer.framebufferEyeFinal0;
-            } else {
-                eyeFinalTarget = DATA_HOLDER.vrRenderer.framebufferEyeFinal1;
-            }
-            eyeFinalTarget.bindWrite(true);
-            ShaderHelper.blitToScreen(
-                eyeARTarget,
-                xOffset,
-                eyeARTarget.width, eyeARTarget.height,
-                yOffset,
-                0f, 0f,
-                true
-            );
 
             RenderHelper.checkGLError("post overlay" + eye);
             Profiler.get().pop();
