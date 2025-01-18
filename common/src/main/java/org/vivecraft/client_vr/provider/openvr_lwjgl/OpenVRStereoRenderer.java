@@ -82,6 +82,7 @@ public class OpenVRStereoRenderer extends VRRenderer {
 
     @Override
     protected Matrix4f getProjectionMatrix(int eyeType, float nearClip, float farClip) {
+        //PhoenixRa: AR GLASSES FIX (FOV)
         try (MemoryStack stack = MemoryStack.stackPush()) {
             FloatBuffer pfLeft = stack.callocFloat(1);
             FloatBuffer pfRight = stack.callocFloat(1);
@@ -104,22 +105,17 @@ public class OpenVRStereoRenderer extends VRRenderer {
     ) {
         try(MemoryStack stack = MemoryStack.stackPush()) {
             HmdMatrix44 hmdMatrix44 = HmdMatrix44.calloc(stack);
-            // Apply scaling to the tangents of the clipping planes
-            // Apply scaling to the tangents of the clipping planes
             fLeft *= scale;
             fRight *= scale;
             fTop *= scale;
             fBottom *= scale;
 
-            // Calculate inverse distances for the projection matrix
             float idx = 1.0f / (fRight - fLeft);
             float idy = 1.0f / (fBottom - fTop);
             float idz = 1.0f / (zFar - zNear);
             float sx = fRight + fLeft;
             float sy = fBottom + fTop;
 
-            // Fill the projection matrix
-            // Create the projection matrix as a FloatBuffer
             FloatBuffer matrixBuffer = stack.callocFloat(16);
 
             matrixBuffer.put(0, 2 * idx); // m[0][0]
@@ -142,7 +138,6 @@ public class OpenVRStereoRenderer extends VRRenderer {
             matrixBuffer.put(14, -1.0f);   // m[3][2]
             matrixBuffer.put(15, 0);       // m[3][3]
 
-            // Set the matrix in the HmdMatrix44 object
             hmdMatrix44.m(matrixBuffer);
             return OpenVRUtil.Matrix4fFromOpenVR(hmdMatrix44);
         }

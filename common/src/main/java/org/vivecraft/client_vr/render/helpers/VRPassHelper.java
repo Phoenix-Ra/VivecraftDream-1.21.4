@@ -71,7 +71,7 @@ public class VRPassHelper {
             }
             eyeTarget.bindWrite(true);
 
-            //PhoenixRa: AR GLASSES FIX
+            //PhoenixRa: AR GLASSES FIX (SCREEN SIZE)
             setupViewportForEye(
                 DATA_HOLDER.vrSettings.eyeScreenSize,
                 eyeTarget.width,eyeTarget.height
