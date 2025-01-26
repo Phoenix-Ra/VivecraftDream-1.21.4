@@ -17,6 +17,7 @@ import net.minecraft.ReportedException;
 import net.minecraft.client.*;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.screens.*;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
@@ -299,7 +300,17 @@ public abstract class MinecraftVRMixin implements MinecraftExtension {
     private void vivecraft$preRender(CallbackInfo ci) {
         if (VRState.VR_RUNNING) {
             Profiler.get().push("preRender");
-            ClientDataHolderVR.getInstance().vrPlayer.preRender(this.deltaTracker.getGameTimeDeltaPartialTick(true));
+            ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
+
+            //PhoenixRa: AR GLASSES FIX (FOV)
+            if(!(screen instanceof OptionsScreen) && dh.vrSettings.fovScaleCurrent != dh.vrSettings.getFovScaleRequired()){
+
+                dh.vrSettings.fovScaleCurrent = (float) dh.vrSettings.getFovScaleRequired();
+                dh.vrSettings.fovScaleChanged = true;
+            }
+            //---
+
+            dh.vrPlayer.preRender(this.deltaTracker.getGameTimeDeltaPartialTick(true));
             VRHotkeys.updateMovingThirdPersonCam();
             Profiler.get().pop();
         }

@@ -28,6 +28,7 @@ import org.vivecraft.client_vr.gameplay.VRPlayer;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gui.PhysicalKeyboard;
 import org.vivecraft.common.utils.math.AngleOrder;
+import org.vivecraft.data.HMD_TYPE;
 
 import java.awt.*;
 import java.io.*;
@@ -187,8 +188,29 @@ public class VRSettings {
     //PhoenixRa: AR GLASSES FIX
     @SettingField
     public float eyeScreenSize = 0.5f;
-    @SettingField
+    @SettingField(VrOptions.FOV_SCALE)
     public float fovScaleFactor = 3f;
+
+    //Server settings received
+    @SettingField(VrOptions.USE_SERVER_FOV_SCALE)
+    public boolean useServerFovScale = true;
+    @SettingField(VrOptions.HMD_FOV_TYPE)
+    public HMD_TYPE hmdFovType = HMD_TYPE.DEFAULT;
+
+    //FOV changes detection, to apply properly
+    public HashMap<HMD_TYPE, Double> fovScaleServer = new HashMap<>();
+    public float fovScaleCurrent = 1.0f;
+    public boolean fovScaleChanged = false;
+
+
+    public double getFovScaleRequired(){
+        if(!useServerFovScale ||
+            Minecraft.getInstance().isSingleplayer()){
+            return fovScaleFactor;
+        }
+        return fovScaleServer.getOrDefault(hmdFovType,1.0);
+    }
+
 
     @SettingField
     public int version = UNKNOWN_VERSION;
@@ -1294,6 +1316,27 @@ public class VRSettings {
 
     public enum VrOptions {
         DUMMY(false, true), // Dummy
+        USE_SERVER_FOV_SCALE(false, true),
+        HMD_FOV_TYPE(false, true) {
+            @Override
+            Object setOptionValue(Object value) {
+                if (value == HMD_TYPE.DEFAULT) {
+                    return HMD_TYPE.AR_GLASSES;
+                } else {
+                    return HMD_TYPE.DEFAULT;
+                }
+            }
+        },
+        FOV_SCALE(true, false, 0.2f, 2.0f, 0.1f, 1) {
+            @Override
+            String getDisplayString(String prefix, Object value) {
+                if ((float) value == 0) {
+                    return prefix + I18n.get("options.off");
+                } else {
+                    return prefix + String.format("%.1f", (float) value) + "s";
+                }
+            }
+        },
         RENDER_DEBUG_HEAD_HITBOX(false, true), // renders entities head hit boxes
         RENDER_DEBUG_DEVICE_AXES(false, true), // renders axes for the local devices
         RENDER_DEBUG_PLAYER_AXES(false, true), // renders axes for all client vr players

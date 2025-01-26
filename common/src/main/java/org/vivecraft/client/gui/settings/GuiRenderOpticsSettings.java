@@ -6,6 +6,7 @@ import net.minecraft.client.gui.screens.Screen;
 import org.vivecraft.client.gui.framework.GuiVROption;
 import org.vivecraft.client.gui.framework.GuiVROptionsBase;
 import org.vivecraft.client.gui.framework.VROptionEntry;
+import org.vivecraft.client.gui.settings.phoenix.GuiSpecialSettings;
 import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.settings.VRHotkeys;
 import org.vivecraft.client_vr.settings.VRSettings;
@@ -54,6 +55,14 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
             return true;
         })};
 
+    private final VROptionEntry[] specialSettings = new VROptionEntry[]{
+        new VROptionEntry(
+            "vivecraft.options.screen.specialrender.button", (button, mousePos) -> {
+            Minecraft.getInstance().setScreen(new GuiSpecialSettings(this));
+            return true;
+        })
+    };
+
     private float prevRenderScaleFactor = this.vrSettings.renderScaleFactor;
     private float prevHandCameraResScale = this.vrSettings.handCameraResScale;
 
@@ -83,6 +92,7 @@ public class GuiRenderOpticsSettings extends GuiVROptionsBase {
         super.init(buttons, true);
 
         super.init(this.postAndShader, false);
+        super.init(this.specialSettings, false);
 
         switch (this.dataHolder.vrSettings.displayMirrorMode) {
             case MIXED_REALITY -> super.init(this.MROptions, false);

@@ -146,7 +146,10 @@
   "vivecraft.options.THIRDPERSON_ITEMTRANSFORMS_CUSTOM": "Raw Custom Item Positions",
   "vivecraft.options.STENCIL_ON": "Use Eye Stencil",
   "vivecraft.options.BCB_ON": "Show Body Position",
+  "vivecraft.options.FOV_SCALE": "FOV Scale",
   "vivecraft.options.WORLD_SCALE": "World Scale",
+  "vivecraft.options.USE_SERVER_FOV_SCALE": "Use FOV from Server",
+  "vivecraft.options.HMD_FOV_TYPE": "HMD FOV Type",
   "vivecraft.options.WORLD_ROTATION": "World Rotation",
   "vivecraft.options.WORLD_ROTATION_INCREMENT": "Rotation Increment",
   "vivecraft.options.TOUCH_HOTBAR": "Touch Hotbar Enabled",
@@ -429,6 +432,9 @@
   "vivecraft.messages.gctitle": "Non-optimal Garbage Collector",
   "vivecraft.messages.gcinfo": "Your current garbage collector is %s, which is not optimal for Vivecraft and will likely cause hitching and framerate drops.\n\nYour system appears sufficient to use %s and %s GB or more of heap memory, which is recommended for the smoothest experience. Add %s to your Java arguments to use it.\n\nIf you're unsure how to modify your Java arguments, press \"%s\" below.",
 
+
+  "vivecraft.options.screen.specialrender": "Special Render Settings",
+  "vivecraft.options.screen.specialrender.button": "Special Settings...",
   "_comment_m": "mixin version exclusive strings",
   "vivecraft.options.screen.settings": "Vivecraft Settings",
   "vivecraft.options.screen.server": "Server Settings",

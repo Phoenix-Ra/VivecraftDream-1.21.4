@@ -347,6 +347,10 @@ public class ClientNetworking {
                     dataholder.vrPlayer.vrSwitchWarning = false;
                 }
             }
+            //PhoenixRa: AR GLASSES FIX (FOV)
+            case FOV_SCALE -> {
+                dataholder.vrSettings.fovScaleServer = ((FovScalePayloadS2C) s2cPayload).fovScaleSettings();
+            }
             case DUAL_WIELDING ->
                 ClientNetworking.SERVER_ALLOWS_DUAL_WIELDING = ((DualWieldingPayloadS2C) s2cPayload).allowed();
         }

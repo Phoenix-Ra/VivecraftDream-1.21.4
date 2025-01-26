@@ -121,6 +121,8 @@ public class ServerNetworking {
 
                 packetConsumer.accept(new VersionPayloadS2C(CommonDataHolder.getInstance().versionIdentifier));
                 packetConsumer.accept(new RequestDataPayloadS2C());
+                //PhoenixRa: AR GLASSES FIX (FOV)
+                packetConsumer.accept(new FovScalePayloadS2C(ServerConfig.getFovScaleSettings()));
 
                 // send server settings
                 if (ServerConfig.CLIMBEY_ENABLED.get()) {

@@ -93,7 +93,7 @@ public class OpenVRStereoRenderer extends VRRenderer {
                 pfLeft.get(0), pfRight.get(0),
                 pfTop.get(0), pfBottom.get(0),
                 nearClip, farClip,
-                ClientDataHolderVR.getInstance().vrSettings.fovScaleFactor
+                ClientDataHolderVR.getInstance().vrSettings.fovScaleCurrent
             );
         }
     }

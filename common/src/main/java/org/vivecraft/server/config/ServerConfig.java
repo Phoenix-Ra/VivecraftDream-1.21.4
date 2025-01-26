@@ -11,10 +11,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import org.vivecraft.client.Xplat;
+import org.vivecraft.data.HMD_TYPE;
 import org.vivecraft.server.ServerNetworking;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ServerConfig {
 
@@ -85,6 +88,7 @@ public class ServerConfig {
 
     public static ConfigBuilder.BooleanValue VR_SWITCHING_ENABLED;
 
+    public static HashMap<HMD_TYPE, ConfigBuilder.DoubleValue> FOV_SCALE = new HashMap<>();
     private static CommentedFileConfig CONFIG;
     private static ConfigBuilder BUILDER;
 
@@ -92,6 +96,13 @@ public class ServerConfig {
         return BUILDER.getConfigValues();
     }
 
+    public static HashMap<HMD_TYPE, Double> getFovScaleSettings(){
+        HashMap<HMD_TYPE, Double> out = new HashMap<>();
+        for(Map.Entry<HMD_TYPE,ConfigBuilder.DoubleValue> entry : FOV_SCALE.entrySet()){
+            out.put(entry.getKey(), entry.getValue().get());
+        }
+        return out;
+    }
     public static void init(ConfigSpec.CorrectionListener listener) {
         Config.setInsertionOrderPreserved(true);
         CONFIG = CommentedFileConfig
@@ -121,6 +132,18 @@ public class ServerConfig {
     private static void fixConfig(CommentedConfig config, ConfigSpec.CorrectionListener listener) {
 
         BUILDER = new ConfigBuilder(config, new ConfigSpec());
+
+        //PhoenixRa: AR GLASSES FIX (FOV)
+        BUILDER.push("fovScale");
+        for(HMD_TYPE entry : HMD_TYPE.values()){
+            FOV_SCALE.put(entry,
+                BUILDER
+                    .push(entry.name())
+                    .defineInRange(1.0, 0.0, 100.0)
+            );
+        }
+        BUILDER.pop();
+
 
         BUILDER
             .push("general");

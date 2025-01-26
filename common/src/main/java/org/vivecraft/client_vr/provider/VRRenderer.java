@@ -111,7 +111,10 @@ public abstract class VRRenderer {
      * @return the projection matrix
      */
     public Matrix4f getCachedProjectionMatrix(int eyeType, float nearClip, float farClip) {
-        if (farClip != this.lastFarClip) {
+        //PhoenixRa: AR GLASSES FIX (FOV)
+        if (farClip != this.lastFarClip
+            || ClientDataHolderVR.getInstance().vrSettings.fovScaleChanged) {
+            ClientDataHolderVR.getInstance().vrSettings.fovScaleChanged = false;
             this.lastFarClip = farClip;
             // fetch both at the same time to make sure they use the same clip planes
             this.eyeProj[0] = this.getProjectionMatrix(0, nearClip, farClip);
