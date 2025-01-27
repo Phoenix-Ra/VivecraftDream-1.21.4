@@ -114,6 +114,9 @@ public class VivecraftVRMod {
     public final KeyMapping keyWalkabout = new KeyMapping("vivecraft.key.walkabout", -1,
         "key.categories.movement");
 
+    //PhoenixRa: Yaw
+    public final KeyMapping keyBlockYaw = new KeyMapping("vivecraft.key.blockYaw", -1,
+        "key.categories.movement");
     /**
      * initializes the Vivecraft KeyMapping sets, if they aren't set yet
      */
@@ -178,6 +181,8 @@ public class VivecraftVRMod {
             this.hiddenKeyBindingSet.add(this.keyHotbarScroll);
             this.hiddenKeyBindingSet.add(this.keyVRInteract);
             this.hiddenKeyBindingSet.add(this.keyWalkabout);
+
+            this.hiddenKeyBindingSet.add(this.keyBlockYaw);
 
             this.allKeyBindingSet.addAll(this.userKeyBindingSet);
             this.allKeyBindingSet.addAll(this.hiddenKeyBindingSet);

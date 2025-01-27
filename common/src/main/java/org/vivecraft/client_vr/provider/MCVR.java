@@ -1172,6 +1172,8 @@ public abstract class MCVR {
         this.addActionParams(map, GuiHandler.KEY_KEYBOARD_CLICK, "suggested", "boolean", null);
         this.addActionParams(map, GuiHandler.KEY_KEYBOARD_SHIFT, "suggested", "boolean", null);
 
+        //PhoenixRa: Yaw
+        this.addActionParams(map, MOD.keyBlockYaw, "suggested", "boolean", null);
         // users can provide their own action parameters if they want
         // this allows them to split mod KeyMappings into GUI, INGAME and GLOBAL categories
         File file = new File("customactionsets.txt");

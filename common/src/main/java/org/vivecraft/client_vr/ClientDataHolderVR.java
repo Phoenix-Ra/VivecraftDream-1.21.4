@@ -62,6 +62,8 @@ public class ClientDataHolderVR {
     public final TelescopeTracker telescopeTracker = createTracker(TelescopeTracker::new);
     public final VehicleTracker vehicleTracker = createTracker(VehicleTracker::new);
 
+    //PhoenixRa Yaw
+    public final YawBlockerTracker yawBlockerTracker = createTracker(YawBlockerTracker::new);
 
     public VRSettings vrSettings;
     public boolean grabScreenShot = false;

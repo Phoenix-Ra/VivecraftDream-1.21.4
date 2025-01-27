@@ -308,7 +308,7 @@
         {
           "inputs": {
             "click": {
-              "output": "/actions/ingame/in/vivecraft.key.radialmenu"
+              "output": "/actions/ingame/in/vivecraft.key.blockYaw"
             }
           },
           "mode": "button",
