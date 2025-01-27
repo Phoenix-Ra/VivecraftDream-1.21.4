@@ -6,6 +6,7 @@ import net.minecraft.world.phys.Vec3;
 import org.joml.*;
 import org.vivecraft.client.ClientVRPlayers;
 import org.vivecraft.client.gui.screens.FBTCalibrationScreen;
+import org.vivecraft.client_vr.gameplay.trackers.YawBlockerTracker;
 import org.vivecraft.client_vr.provider.MCVR;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
@@ -59,6 +60,26 @@ public class VRData {
     public float rotation_radians;
     // pose positions get scaled by that
     public float worldScale;
+
+    public VRData(Vec3 origin, float walkMul, float worldScale, float rotation,
+        boolean yawLockable){
+        //PhoenixRa: Yaw
+        this(origin,walkMul,worldScale,rotation);
+        if(yawLockable){
+            ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
+            if(dh.yawBlockerTracker != null){
+                float cachedRot = rotation_radians;
+                rotation_radians = 0;
+                float lockedYaw = YawBlockerTracker.getYawLockFor(this);
+                if(lockedYaw == -1) {
+                    rotation_radians = cachedRot;
+                    return;
+                }
+                rotation_radians = lockedYaw;
+
+            }
+        }
+    }
 
     public VRData(Vec3 origin, float walkMul, float worldScale, float rotation) {
         ClientDataHolderVR dataHolder = ClientDataHolderVR.getInstance();

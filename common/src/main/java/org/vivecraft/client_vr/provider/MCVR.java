@@ -72,15 +72,15 @@ public abstract class MCVR {
     protected HardwareType detectedHardware = HardwareType.VIVE;
 
     // position/orientation of headset and eye offsets
-    protected Matrix4f hmdPose = new Matrix4f();
+    public Matrix4f hmdPose = new Matrix4f();
     public Matrix4f hmdRotation = new Matrix4f();
-    protected Matrix4f hmdPoseLeftEye = new Matrix4f();
-    protected Matrix4f hmdPoseRightEye = new Matrix4f();
+    public Matrix4f hmdPoseLeftEye = new Matrix4f();
+    public Matrix4f hmdPoseRightEye = new Matrix4f();
 
     public Vector3fHistory hmdHistory = new Vector3fHistory();
     public Vector3fHistory hmdPivotHistory = new Vector3fHistory();
     public QuaternionfHistory hmdRotHistory = new QuaternionfHistory();
-    protected boolean headIsTracking;
+    public boolean headIsTracking;
     protected Matrix4f[] controllerPose = new Matrix4f[TRACKABLE_DEVICE_COUNT];
     protected Matrix4f[] controllerRotation = new Matrix4f[TRACKABLE_DEVICE_COUNT];
     protected boolean[] controllerTracking = new boolean[TRACKABLE_DEVICE_COUNT];
@@ -99,7 +99,7 @@ public abstract class MCVR {
     public boolean initialized;
     public String initStatus;
     public boolean initSuccess;
-    protected Matrix4f[] poseMatrices;
+    public Matrix4f[] poseMatrices;
     protected Vector3f[] deviceVelocity;
     protected Vector3f[] aimSource = new Vector3f[TRACKABLE_DEVICE_COUNT];
 

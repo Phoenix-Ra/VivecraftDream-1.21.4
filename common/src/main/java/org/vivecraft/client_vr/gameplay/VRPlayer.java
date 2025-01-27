@@ -37,6 +37,7 @@ import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.RadialHandler;
 import org.vivecraft.client_vr.gameplay.trackers.Tracker;
 import org.vivecraft.client_vr.gameplay.trackers.VehicleTracker;
+import org.vivecraft.client_vr.gameplay.trackers.YawBlockerTracker;
 import org.vivecraft.client_vr.render.RenderPass;
 import org.vivecraft.client_vr.settings.VRSettings;
 import org.vivecraft.common.VRServerPerms;
@@ -150,6 +151,7 @@ public class VRPlayer {
             this.worldScale,
             Mth.DEG_TO_RAD * this.dh.vrSettings.worldRotation);
 
+
         VRSettings.ServerOverrides.Setting worldScaleOverride = this.dh.vrSettings.overrides.getSetting(
             VRSettings.VrOptions.WORLD_SCALE);
 
@@ -250,7 +252,6 @@ public class VRPlayer {
         Vector3f scaleOffset = this.vrdata_world_pre.hmd.getScalePositionOffset(this.worldScale);
         this.roomOrigin = this.roomOrigin.subtract(scaleOffset.x, scaleOffset.y, scaleOffset.z);
         //
-
         // Handle all room translations up to this point and then rotate it around the hmd.
         float end = this.dh.vrSettings.worldRotation;
         float start = Mth.RAD_TO_DEG * this.vrdata_world_pre.rotation_radians;
@@ -267,6 +268,7 @@ public class VRPlayer {
             this.dh.vrSettings.walkMultiplier,
             this.worldScale,
             Mth.DEG_TO_RAD * this.dh.vrSettings.worldRotation);
+
 
         // Vivecraft - setup the player entity with the correct view for the logic tick.
         this.doPermanentLookOverride(this.mc.player, this.vrdata_world_post);
@@ -304,8 +306,9 @@ public class VRPlayer {
             interpolatedRoomOrigin,
             this.dh.vrSettings.walkMultiplier,
             interpolatedWorldScale,
-            interpolatedWorldRotation_Radians);
-
+            interpolatedWorldRotation_Radians,
+            true
+        );
         // handle special items
         for (Tracker tracker : this.trackers) {
             if (tracker.getEntryPoint() == Tracker.EntryPoint.SPECIAL_ITEMS) {

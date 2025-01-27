@@ -30,6 +30,7 @@ import org.vivecraft.client_vr.VRState;
 import org.vivecraft.client_vr.gameplay.screenhandlers.GuiHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.KeyboardHandler;
 import org.vivecraft.client_vr.gameplay.screenhandlers.RadialHandler;
+import org.vivecraft.client_vr.gameplay.trackers.YawBlockerTracker;
 import org.vivecraft.client_vr.provider.*;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.control.TrackpadSwipeSampler;
 import org.vivecraft.client_vr.provider.openvr_lwjgl.control.VRInputActionSet;

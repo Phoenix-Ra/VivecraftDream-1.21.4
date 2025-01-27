@@ -6,11 +6,15 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.util.Mth;
 import org.vivecraft.client.VivecraftVRMod;
 import org.vivecraft.client_vr.ClientDataHolderVR;
+import org.vivecraft.client_vr.VRData;
+import org.vivecraft.client_vr.provider.MCVR;
 
 //PhoenixRa Yaw
 public class YawBlockerTracker extends Tracker {
     private boolean yawBlocked;
-    private float yawBeforeBlocked;
+
+    private float worldYawLocked;
+
     public YawBlockerTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
     }
@@ -20,13 +24,16 @@ public class YawBlockerTracker extends Tracker {
         if (this.dh.vrSettings.seated) {
             return false;
         }
+        if(!MCVR.get().headIsTracking) {
+            return false;
+        }
         return true;
     }
 
     @Override
     public void reset(LocalPlayer player) {
         yawBlocked = false;
-        yawBeforeBlocked = 0;
+        worldYawLocked = 0;
     }
 
     @Override
@@ -36,21 +43,24 @@ public class YawBlockerTracker extends Tracker {
             blockYaw();
         }
         if(yawBlocked && !keyBlockYaw.isDown()){
-            releaseYaw();
+            reset(null);
         }
     }
 
-    public void blockYaw(){
+    private void blockYaw(){
         if(yawBlocked) return;
         yawBlocked = true;
-        yawBeforeBlocked = dh.vrPlayer.vrdata_world_pre.hmd.getYaw()
-            - (Mth.RAD_TO_DEG * dh.vrPlayer.vrdata_world_pre.rotation_radians);
+
+        worldYawLocked = dh.vrPlayer.vrdata_world_pre.hmd.getYaw();
     }
-    public void releaseYaw(){
-        if(!yawBlocked) return;
-        yawBlocked = false;
-        dh.vrSettings.worldRotation = dh.vrPlayer.vrdata_world_pre.hmd.getYaw() - yawBeforeBlocked;
-        dh.vrSettings.worldRotation %= 360.0F;
-        yawBeforeBlocked = 0;
+
+
+    public static float getYawLockFor(VRData data) {
+        ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
+        YawBlockerTracker yawBlockerTracker = dh.yawBlockerTracker;
+        if(!yawBlockerTracker.yawBlocked) return -1;
+
+        return (yawBlockerTracker.worldYawLocked - data.hmd.getYaw());
+
     }
 }
