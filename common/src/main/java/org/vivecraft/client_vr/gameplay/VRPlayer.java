@@ -306,8 +306,7 @@ public class VRPlayer {
             interpolatedRoomOrigin,
             this.dh.vrSettings.walkMultiplier,
             interpolatedWorldScale,
-            interpolatedWorldRotation_Radians,
-            true
+            interpolatedWorldRotation_Radians
         );
         // handle special items
         for (Tracker tracker : this.trackers) {

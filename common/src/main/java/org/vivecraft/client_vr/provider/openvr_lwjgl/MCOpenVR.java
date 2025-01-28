@@ -1519,6 +1519,7 @@ public class MCOpenVR extends MCVR {
         if (this.trackedDevicePoses.get(k_unTrackedDeviceIndex_Hmd).bPoseIsValid()) {
             this.hmdPose.set(this.poseMatrices[k_unTrackedDeviceIndex_Hmd]);
             this.headIsTracking = true;
+            hmdPose = YawBlockerTracker.lockYawForPose(hmdPose);
         } else {
             this.headIsTracking = false;
             this.hmdPose.identity();
@@ -1567,6 +1568,7 @@ public class MCOpenVR extends MCVR {
         }
 
         this.updateAim();
+        YawBlockerTracker.unlockIfShould();
     }
 
     /**
