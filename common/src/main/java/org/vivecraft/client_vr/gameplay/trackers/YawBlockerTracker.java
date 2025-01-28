@@ -32,10 +32,10 @@ public class YawBlockerTracker extends Tracker {
     public void doProcess(LocalPlayer player) {
         KeyMapping keyBlockYaw = VivecraftVRMod.INSTANCE.keyBlockYaw;
         if(!isYawLocked && keyBlockYaw.consumeClick()){
-            lockYaw();
+            lockYaw(); //freeze
         }
         if(!shouldRelease && isYawLocked && !keyBlockYaw.isDown()){
-            shouldRelease = true;
+            shouldRelease = true; //unfreeze
         }
     }
     @Override
