@@ -12,8 +12,10 @@ import org.vivecraft.client_vr.provider.MCVR;
 //PhoenixRa Yaw
 public class YawBlockerTracker extends Tracker {
     private boolean yawBlocked;
+    private boolean shouldRelease;
 
     private float worldYawLocked;
+    private float offsetYawLocked;
 
     public YawBlockerTracker(Minecraft mc, ClientDataHolderVR dh) {
         super(mc, dh);
@@ -33,6 +35,7 @@ public class YawBlockerTracker extends Tracker {
     @Override
     public void reset(LocalPlayer player) {
         yawBlocked = false;
+        shouldRelease = false;
         worldYawLocked = 0;
     }
 
@@ -43,24 +46,30 @@ public class YawBlockerTracker extends Tracker {
             blockYaw();
         }
         if(yawBlocked && !keyBlockYaw.isDown()){
-            reset(null);
+            shouldRelease = true;
         }
     }
 
     private void blockYaw(){
         if(yawBlocked) return;
         yawBlocked = true;
-
-        worldYawLocked = dh.vrPlayer.vrdata_world_pre.hmd.getYaw();
+        shouldRelease = false;
+        worldYawLocked = dh.vrPlayer.vrdata_world_pre.hmd.getYawRad();
+        offsetYawLocked = dh.vrPlayer.vrdata_world_pre.rotation_radians;
     }
 
 
-    public static float getYawLockFor(VRData data) {
+    public static void getYawLockFor(VRData data) {
         ClientDataHolderVR dh = ClientDataHolderVR.getInstance();
         YawBlockerTracker yawBlockerTracker = dh.yawBlockerTracker;
-        if(!yawBlockerTracker.yawBlocked) return -1;
+        if(!yawBlockerTracker.yawBlocked) return;
 
-        return (yawBlockerTracker.worldYawLocked - data.hmd.getYaw());
+        dh.vrSettings.worldRotation = Mth.RAD_TO_DEG *
+            (yawBlockerTracker.offsetYawLocked+(data.hmd.getYawRad() - yawBlockerTracker.worldYawLocked));
+        dh.vrSettings.worldRotation %= 360.0F;
+        if(yawBlockerTracker.shouldRelease){
+            yawBlockerTracker.reset(null);
+        }
 
     }
 }
